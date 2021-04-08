@@ -1,0 +1,16 @@
+# Raw Data
+Tunnel-Trial-Data/
+
+# Rstudio files
+.Rproj.user
+.Rproj.user/ 
+.Rhistory
+.RData
+.Ruserdata
+.rstudio
+.rstudio/
+.local
+.local/
+.config
+.config/
+.bash_history
