@@ -1,0 +1,7 @@
++ on = on sample, numbers are replicates; off = off pattern
+
++ excel sheet 1 has data
+
++ white= white standard (opaque patterns), mirror = mirror refl. standard (bare glass parts), no mirror or white = mirror
+
++ how to name samples ? --> SAMPLENAME_SAMPLENUM_SAMPLELOCATION_REFLECTANCESTANDARD_REPLICATENUMBER

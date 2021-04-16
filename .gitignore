@@ -2,6 +2,7 @@
 Tunnel-Trial-Data/
 
 # Rstudio files
+*.Rproj
 .Rproj.user
 .Rproj.user/ 
 .Rhistory
