@@ -40,7 +40,11 @@ Specs <-
   # Smooth spectra
   furrr::future_map(., ~pavo::procspec(.x, opt = "smooth", span = 0.25)) %>%
   # Make all negative refl values = 0
-  furrr::future_map(., ~pavo::procspec(.x, fixneg = "zero"))
+  furrr::future_map(., ~pavo::procspec(.x, fixneg = "zero")) %>%
+  # Remove samples if reflectance > 100%
+  furrr::future_map(., ~mutate(.x, across(everything(),~ifelse(.x > 100, NA, .x)))) %>%
+  furrr::future_map(., ~select_if(.x, ~!any(is.na(.x)))) %>%
+  map(., ~tibble(wl = 300:700, .x))
 
 # Get sample names
 SampleNames <-
