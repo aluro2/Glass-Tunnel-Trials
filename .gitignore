@@ -15,3 +15,9 @@ Tunnel-Trial-Data/
 .config
 .config/
 .bash_history
+
+# Files
+*.odg
+*.pdf
+*.png
+Results/*
