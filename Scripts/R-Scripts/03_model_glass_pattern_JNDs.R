@@ -8,7 +8,9 @@ library(ggthemr)
 
 MatchedData <-
   read_rds("Data/MatchedData.rds") %>%
-  filter(!total == 0)
+  filter(!total == 0) %>%
+  # Remove outliers, likely bad reflectance measurement
+  filter(!(first_surf == 2 & visual_contrast > 5))
 
 # Model flight avoidance vs. pattern JNDs ---------------------------------
 model <-

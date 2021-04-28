@@ -38,14 +38,15 @@ ggthemr::ggthemr('solarized')
 
 plot_contrast_and_patwidth <-
   ggplot() +
-  geom_vline(xintercept = 0, lwd = 1.5, color = "gray", alpha = 0.5) +
-  geom_point(
-    data = filter(MatchedData, !is.na(first_surf), !is.na(pat_width)),
+  geom_vline(xintercept = -2, lwd = 1.5, color = "gray", alpha = 0.5) +
+  geom_label(
+    data = filter(MatchedData, !is.na(first_surf), !is.na(pat_width)) ,
     aes(
+      label = matchname.y,
       x = visual_contrast,
       y = score,
       color = first_surf,
-      size = pat_width
+      size = 3
     )
   ) +
   scale_size() +
@@ -78,8 +79,8 @@ plot_contrast_and_patwidth <-
   ) +
   scale_colour_ggthemr_d() +
   guides(
-    color = guide_legend(title = "Glass Pattern \n Surface Number"),
-    size = guide_legend(title = "Glass Pattern Width (mm)")
+    color = guide_legend(title = "Glass Pattern \n Surface Number")#,
+    #size = guide_legend(title = "Glass Pattern Width (mm)")
   ) +
   labs(
     x = "Avian Visual Contrast (JND)",
@@ -95,9 +96,9 @@ plot_contrast_and_patwidth <-
     panel.grid.minor = element_blank()
   )
 
-ggsave("Figures/01_contrast_and_patwidth.pdf",
+ggsave("Figures/01_contrast_and_patwidth_dropped_outliers.pdf",
        plot_contrast_and_patwidth,
-       width = 10,
-       height = 7,
+       width = 16,
+       height = 8,
        units = "in",
        dpi = 400)
