@@ -1,9 +1,0 @@
-+ excel sheet 1 has data
-
-+ light = reflectance standard?, dark = dark measurement?
-
-+ on = on sample, numbers are replicates; off = off pattern
-
-+ white = relative to white standard (opaque patterns), mirror = relative mirror refl. standard (bare glass parts), no mirror or white = mirror
-
-+ how to name samples ? --> SAMPLENAME_SAMPLENUM_SAMPLELOCATION_REFLECTANCESTANDARD_REPLICATENUMBER

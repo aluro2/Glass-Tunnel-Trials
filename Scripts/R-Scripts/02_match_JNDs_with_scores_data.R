@@ -7,6 +7,8 @@ library(janitor)
 library(hablar)
 library(fuzzyjoin)
 
+# Hash-ID function
+source("Scripts/R-Scripts/xx_hashID.R")
 
 # Import JND data -----------------------------------------
 MatchedJNDs <-
@@ -67,9 +69,28 @@ MatchedData <-
   mutate(
     dS15 = dS*0.15,
     dL85 = dL*0.85,
-    visual_contrast = ((dS15 + dL85)/ 2) - 3
-  )
-
+    # Composite visual contrast
+    visual_contrast = ((dS15 + dL85)/ 2)
+  ) %>%
+  filter(!total == 0) %>%
+  # Remove outliers, likely bad reflectance measurement because of wrong white standard or small sample area (too small for spectrometer probe)
+  filter(!(first_surf == 2 & visual_contrast > 5),
+         !(first_surf ==">2")) %>%
+  filter(!(samplename == "Pilkington" & samplenumber == "NSG4")) %>%
+  filter(!(samplename == "Guardian" && samplenumber == "gdots")) %>%
+  mutate(sampleID = hashed_id(matchname.x, "glass1234"),
+         first_surf = fct_drop(first_surf, ">2")) %>%
+  select(-matchname.x,
+         -matchname.y,
+         -samplename,
+         -samplenumber,
+         -notes,
+         -x36,
+         -discrepancies,
+         -x38,
+         -dS15,
+         -dL85) %>%
+  select(sampleID, everything())
 
 # Save matched data -------------------------------------------------------
 

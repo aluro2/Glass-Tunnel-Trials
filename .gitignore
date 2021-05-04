@@ -21,3 +21,7 @@ Tunnel-Trial-Data/
 *.pdf
 *.png
 Results/*
+*hashID.R
+Scripts/R-Scripts/xx_hashID.R
+Data/data-with-contrast.csv
+Data/Raw-Data/reflectance-spec-notes.txt

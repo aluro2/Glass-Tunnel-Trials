@@ -2,22 +2,25 @@
 # Load packages and data --------------------------------------------------
 library(tidyverse)
 library(brms)
-library(tidybayes)
 library(modelr)
 library(ggthemr)
 
 MatchedData <-
   read_rds("Data/MatchedData.rds") %>%
-  filter(!total == 0) %>%
-  # Remove outliers, likely bad reflectance measurement
-  filter(!(first_surf == 2 & visual_contrast > 5))
+  mutate(contrast_threshold = as_factor(
+    case_when(visual_contrast <= 1 ~ "<1_JND",
+              visual_contrast > 1 & visual_contrast < 3 ~ "1-3_JND",
+              visual_contrast >= 3 ~ ">3_JND")))
 
 # Model flight avoidance vs. pattern JNDs ---------------------------------
 model <-
   brm(
-    cont | trials(total) ~ (visual_contrast*pat_width)*first_surf,
+    cont | trials(total) ~ (visual_contrast*pat_width) + first_surf,
     data = MatchedData,
     family = binomial(link = "logit"),
+    prior = c(prior(normal(0, 1.5), class = Intercept, coef = ""),
+              #prior(cauchy(0, 10), class = sd),
+              prior(normal(0, 10), class = b)),
     iter = 2000,
     inits = "random",
     chains = 4,
@@ -36,40 +39,67 @@ get_variables(model)
 
 source("https://sebastiansauer.github.io/Rcode/logit2prob.R")
 
-plot_data <-
-  model$data %>%
-    filter(first_surf %in% c(1,2),
-           !total == 0) %>%
-    group_by(first_surf) %>%
-    data_grid(visual_contrast = seq_range(visual_contrast, n = 101),
-              total = seq(min(total),max(total), 1)) %>%
-    add_fitted_draws(model, n = 20, scale = "linear") %>%
-    mutate(.value = logit2prob(.value))
 
-plot_data %>%
-  ggplot(aes(x = visual_contrast, y = .value, color = first_surf)) +
-    geom_line(aes(y = .value, group = paste(first_surf, .draw)))
+# Beta-binomial model -----------------------------------------------------
+{
+  beta_binomial2 <-
+    custom_family(
+      "beta_binomial2", dpars = c("mu", "phi"),
+      links = c("logit", "log"), lb = c(NA, 0),
+      type = "int", vars = "trials[n]"
+    )
 
+  stan_funs <-
+  "real beta_binomial2_lpmf(int y, real mu, real phi, int T) {
+    return beta_binomial_lpmf(y | T, mu * phi, (1 - mu) * phi);
+  }
+  int beta_binomial2_rng(real mu, real phi, int T) {
+    return beta_binomial_rng(T, mu * phi, (1 - mu) * phi);
+  }"
 
-model %>%
-  gather_draws(`b_visual_contrast:first_surf1`, `b_visual_contrast:first_surf2`) %>%
-  median_hdi()
+  stanvars <-
+    stanvar(scode = stan_funs, block = "functions")
+}
 
+model_beta <-
+  brm(
+    cont | trials(total) ~ (visual_contrast*pat_width)*first_surf,
+    data = MatchedData,
+    family = beta_binomial2,
+    prior = c(prior(normal(0, 2), class = Intercept),
+              prior(exponential(1), class = phi)),
+    stanvars = stanvars,
+    iter = 2000,
+    inits = "random",
+    chains = 4,
+    cores = 4,
+    thin = 1,
+    seed = 15,
+    sample_prior = "yes", save_all_pars = TRUE
+  )
 
-# Plot scores vs JNDs -----------------------------------------------------
+expose_functions(model_beta, vectorize = T)
 
+log_lik_beta_binomial2 <- function(i, prep) {
+  mu <- prep$dpars$mu[, i]
+  phi <- prep$dpars$phi
+  trials <- prep$data$vint1[i]
+  y <- prep$data$Y[i]
+  beta_binomial2_lpmf(y, mu, phi, trials)
+}
 
-MatchedData %>%
-  ggplot(aes(x = visual_contrast, y = score, size = pat_width)) +
-  geom_point() +
-  geom_smooth(method = "lm", size = 1) +
-  facet_wrap(first_surf ~.)
+posterior_predict_beta_binomial2 <- function(i, prep, ...) {
+  mu <- prep$dpars$mu[, i]
+  phi <- prep$dpars$phi
+  trials <- prep$data$vint1[i]
+  beta_binomial2_rng(mu, phi, trials)
+}
 
-model <-
-  MatchedData %>%
-  filter(first_surf == 1) %>%
-  lm(score ~ visual_contrast, data = .)
+posterior_epred_beta_binomial2 <- function(prep) {
+  mu <- prep$dpars$mu
+  trials <- prep$data$vint1
+  trials <- matrix(trials, nrow = nrow(mu), ncol = ncol(mu), byrow = TRUE)
+  mu * trials
+}
 
-summary(model)
-
-
+conditional_effects(model_beta, conditions = data.frame(size = 1))

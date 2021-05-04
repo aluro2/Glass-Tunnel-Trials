@@ -12,25 +12,33 @@ model <-
 
 
 MatchedData <-
-  read_rds("Data/MatchedData.rds") %>%
-  filter(!total == 0)
+  read_rds("Data/MatchedData.rds")
 
 # Plot model results ------------------------------------------------------
 
 plot_data <-
   model$data %>%
-  group_by(first_surf) %>%
+  group_by(first_surf, visual_contrast) %>%
   add_fitted_draws(model, n = 100, scale = "response") %>%
   mutate(avoid_prob = .value/total)
 
-# plot_data <-
-#   model$data %>%
-#   data_grid(visual_contrast = seq_range(visual_contrast, n = 50),
-#             total = seq(min(total),max(total), 1),
-#             pat_width = seq_range(pat_width, n = 50),
-#             first_surf) %>%
-#   add_fitted_draws(model, n = 100, scale = "response") %>%
-#   mutate(avoid_prob = .value/total)
+plot_data <-
+  model$data %>%
+  data_grid(visual_contrast = seq(0, 10, 0.2),
+            total = 65,
+            pat_width = seq_range(pat_width, n = 20),
+            first_surf = c(1,2)) %>%
+  group_by(first_surf, visual_contrast) %>%
+  add_fitted_draws(model, n = 500, scale = "response") %>%
+  mutate(avoid_prob = .value/total) %>%
+  mutate(median_value = median(avoid_prob))
+
+ggplot() +
+  geom_smooth(data = plot_data,
+            aes(x = visual_contrast,
+                y = median_value,
+                color = first_surf,
+                group = first_surf))
 
 ggthemr::ggthemr_reset()
 
@@ -38,55 +46,58 @@ ggthemr::ggthemr('solarized')
 
 plot_contrast_and_patwidth <-
   ggplot() +
-  geom_vline(xintercept = -2, lwd = 1.5, color = "gray", alpha = 0.5) +
-  geom_label(
-    data = filter(MatchedData, !is.na(first_surf), !is.na(pat_width)) ,
+  geom_vline(xintercept = 0, lwd = 1.5, color = "gray", alpha = 0.5) +
+  geom_point(
+    data = model$data,
     aes(
-      label = matchname.y,
       x = visual_contrast,
-      y = score,
-      color = first_surf,
-      size = 3
+      y = (cont/total),
+      color = as.factor(first_surf),
+      size = pat_width,
+      group = as.factor(first_surf)
     )
   ) +
-  scale_size() +
-  geom_line(
-    data = plot_data,
-    aes(
-      x = visual_contrast,
-      y = avoid_prob,
-      group = paste(first_surf, .draw),
-      color = first_surf
-    ),
-    stat = "smooth",
-    method = "lm",
-    se = FALSE,
-    alpha = 0.1
-  ) +
-  geom_line(
-    data = plot_data,
-    aes(
-      x = visual_contrast,
-      y = avoid_prob,
-      group = first_surf,
-      color = first_surf
-    ),
-    stat = "smooth",
-    method = "lm",
-    se = FALSE,
-    alpha = 1,
-    size = 1.5
-  ) +
+  stat_smooth(data = plot_data,
+              aes(y = avoid_prob,
+                  x = visual_contrast,
+                  group = paste(.draw, first_surf),
+                  color = as.factor(first_surf)),
+              method = "lm",
+              geom = "line", size = 0.5,
+              alpha = 0.01,
+              se = FALSE) +
+  stat_smooth(data = plot_data,
+              aes(y = median_value,
+                  x = visual_contrast,
+                  color = as.factor(first_surf)),
+              method = "lm",
+              geom = "line", size = 0.5,
+              alpha = 1,
+              se = FALSE) +
+
+  # stat_smooth(
+  #   data = plot_data,
+  #   aes(
+  #     x = visual_contrast,
+  #     y = avoid_prob,
+  #     group = first_surf,
+  #     color = first_surf
+  #   ),
+  #   geom = "line",
+  #   se = FALSE,
+  #   alpha = 1,
+  #   size = 1.5
+  # ) +
   scale_colour_ggthemr_d() +
   guides(
-    color = guide_legend(title = "Glass Pattern \n Surface Number")#,
-    #size = guide_legend(title = "Glass Pattern Width (mm)")
+    color = guide_legend(title = "Glass Pattern \n Surface Number"),
+    size = guide_legend(title = "Glass Pattern Width (mm)")
   ) +
   labs(
     x = "Avian Visual Contrast (JND)",
     y = "Proportion of flights \n toward control glass"
   ) +
-  scale_y_continuous(limits = c(0.5, 1), breaks = seq(0.5, 1, 0.10)) +
+  #scale_y_continuous(limits = c(0.5, 1), breaks = seq(0.5, 1, 0.10)) +
   facet_wrap(. ~ first_surf) +
   theme(
     axis.title = element_text(size = 16),
