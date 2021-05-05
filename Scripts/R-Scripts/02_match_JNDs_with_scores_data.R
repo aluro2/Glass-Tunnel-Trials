@@ -35,10 +35,13 @@ ScoreData <-
          dots = recode(dots, "N?" = "N"),
          first_surf = fct_collapse(first_surf,
                                    "1" = "1",
-                                   "2" = "2",
-                                   ">2" = c("3", "4", "5", "N")
-                                   )) %>%
+                                   ">1" = c("2","3", "4", "5", "N")),
+         no_glass = as_factor(no_glass),
+         season_yr_cond = as_factor(season_yr_cond)
+
+         ) %>%
   select(matchname, everything()) %>%
+  select(!notes:length(.)) %>%
   hablar::convert(
     num(score,pat_width,p_width,p_height,thicktopat,glass_thick,total_thick,
         minhd, maxhd,avehd,minvd,maxvd,avevd
@@ -74,23 +77,24 @@ MatchedData <-
   ) %>%
   filter(!total == 0) %>%
   # Remove outliers, likely bad reflectance measurement because of wrong white standard or small sample area (too small for spectrometer probe)
-  filter(!(first_surf == 2 & visual_contrast > 5),
-         !(first_surf ==">2")) %>%
-  filter(!(samplename == "Pilkington" & samplenumber == "NSG4")) %>%
-  filter(!(samplename == "Guardian" && samplenumber == "gdots")) %>%
-  mutate(sampleID = hashed_id(matchname.x, "glass1234"),
-         first_surf = fct_drop(first_surf, ">2")) %>%
-  select(-matchname.x,
-         -matchname.y,
+  filter(!(first_surf == 2 & visual_contrast > 5)#,
+         #!(first_surf ==">2")
+         ) %>%
+  filter(!(samplename == "Pilkington" & samplenumber == "NSG4"),
+         !(samplename == "Guardian" & samplenumber == "gdots"),
+         !(samplename == "Guardian" & samplenumber == "guardian"),
+         !(samplename == "Guardian" & samplenumber == "gdots40"),
+         !samplenumber == "guardian50") %>%
+  # mutate(sampleID = hashed_id(matchname.x, "glass1234")#,
+  #        #first_surf = fct_drop(first_surf, ">2")
+  #        ) %>%
+  select(#-matchname.x,
+         #-matchname.y,
          -samplename,
          -samplenumber,
-         -notes,
-         -x36,
-         -discrepancies,
-         -x38,
          -dS15,
-         -dL85) %>%
-  select(sampleID, everything())
+         -dL85) #%>%
+  # select(sampleID, everything())
 
 # Save matched data -------------------------------------------------------
 

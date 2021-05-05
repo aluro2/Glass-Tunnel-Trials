@@ -15,7 +15,7 @@ MatchedData <-
 # Model flight avoidance vs. pattern JNDs ---------------------------------
 model <-
   brm(
-    cont | trials(total) ~ (visual_contrast*pat_width) + first_surf,
+    cont | trials(total) ~ (visual_contrast*pat_width) + first_surf  + (1|season_yr_cond),
     data = MatchedData,
     family = binomial(link = "logit"),
     prior = c(prior(normal(0, 1.5), class = Intercept, coef = ""),
@@ -27,7 +27,9 @@ model <-
     cores = 4,
     thin = 1,
     seed = 15,
-    sample_prior = "yes", save_all_pars = TRUE
+    control = list(adapt_delta = 0.95),
+    sample_prior = "yes",
+    save_all_pars = TRUE
   )
 
 write_rds(model, "Results/full-model.rds")
