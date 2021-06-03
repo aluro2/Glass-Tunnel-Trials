@@ -15,12 +15,12 @@ MatchedData <-
 # Model flight avoidance vs. pattern JNDs ---------------------------------
 model <-
   brm(
-    cont | trials(total) ~ (visual_contrast*pat_width) + first_surf  + (1|season_yr_cond),
+    cont | trials(total) ~ (visual_contrast*pat_width) + first_surf + (1|season_yr_cond),
     data = MatchedData,
     family = binomial(link = "logit"),
-    prior = c(prior(normal(0, 1.5), class = Intercept, coef = ""),
-              #prior(cauchy(0, 10), class = sd),
-              prior(normal(0, 10), class = b)),
+    prior = c(prior(normal(0, 0.25), class = Intercept, coef = ""),
+              prior(cauchy(0, 10), class = sd),
+              prior(normal(0, 3), class = b)),
     iter = 2000,
     inits = "random",
     chains = 4,
@@ -35,12 +35,38 @@ model <-
 write_rds(model, "Results/full-model.rds")
 
 
+# Simple visual contrast model --------------------------------------------
+
+model_vis_contrast <-
+  brm(
+    bf(cont | trials(total) ~ 0.5 + 0.5 * inv_logit(eta), eta ~ visual_contrast, nl = TRUE),
+    data = MatchedData,
+    family = binomial(link = "identity"),
+    prior = prior(normal(0, 1), nlpar = "eta"),
+    iter = 2000,
+    inits = "random",
+    chains = 4,
+    cores = 4,
+    thin = 1,
+    seed = 15,
+    control = list(adapt_delta = 0.95),
+    sample_prior = "yes",
+    save_all_pars = TRUE
+  )
+
+write_rds(model_vis_contrast, "Results/model-vis-contrast.rds")
+
+
 # TEST --------------------------------------------------------------------
 
 get_variables(model)
 
 source("https://sebastiansauer.github.io/Rcode/logit2prob.R")
 
+prob2logit <-
+  function(x){
+    log(x/(1-x))
+  }
 
 # Beta-binomial model -----------------------------------------------------
 {

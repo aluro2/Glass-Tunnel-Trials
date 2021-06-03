@@ -86,10 +86,10 @@ ggsave("Figures/03_surface_number_vs_score.pdf",
     filter(., !is.na(first_surf), !is.na(pat_width)) %>%
     select(score, visual_contrast, first_surf) %>%
     drop_na() %>%
-    mutate(first_surf = recode(first_surf,
-                                "1" = "Surface 1",
-                               "2" = "Surface 2",
-                               ">2" = "> Surface 2")) %>%
+    # mutate(first_surf = recode(first_surf,
+    #                             "1" = "Surface 1",
+    #                            "2" = "Surface 2",
+    #                            ">2" = "> Surface 2")) %>%
     rename("Proportion of flights toward control glass" = score,
            "Avian visual contrast" = visual_contrast,
            "Glass Pattern Surface Number" = first_surf) %>%
