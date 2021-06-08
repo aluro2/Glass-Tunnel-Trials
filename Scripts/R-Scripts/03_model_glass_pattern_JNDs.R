@@ -6,11 +6,7 @@ library(modelr)
 library(ggthemr)
 
 MatchedData <-
-  read_rds("Data/MatchedData.rds") %>%
-  mutate(contrast_threshold = as_factor(
-    case_when(visual_contrast <= 1 ~ "<1_JND",
-              visual_contrast > 1 & visual_contrast < 3 ~ "1-3_JND",
-              visual_contrast >= 3 ~ ">3_JND")))
+  read_rds("Data/MatchedData.rds")
 
 # Model flight avoidance vs. pattern JNDs ---------------------------------
 model <-
@@ -39,7 +35,7 @@ write_rds(model, "Results/full-model.rds")
 
 model_vis_contrast <-
   brm(
-    bf(cont | trials(total) ~ visual_contrast + (1|season_yr_cond)),
+    bf(cont | trials(total) ~ visual_contrast + (1|season_yr_cond) +(1|manufacturer)),
     data = MatchedData,
     family = binomial(link = "logit"),
     prior = c(prior(normal(0, 0.25), class = Intercept, coef = ""),

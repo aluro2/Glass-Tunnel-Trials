@@ -75,16 +75,6 @@ MatchedData <-
     # Composite visual contrast
     visual_contrast = ((dS15 + dL85)/ 2)
   ) %>%
-  filter(!total == 0) %>%
-  # Remove outliers, likely bad reflectance measurement because of wrong white standard or small sample area (too small for spectrometer probe)
-  filter(!(first_surf == 2 & visual_contrast > 5)#,
-         #!(first_surf ==">2")
-         ) %>%
-  filter(!(samplename == "Pilkington" & samplenumber == "NSG4"),
-         !(samplename == "Guardian" & samplenumber == "gdots"),
-         !(samplename == "Guardian" & samplenumber == "guardian"),
-         !(samplename == "Guardian" & samplenumber == "gdots40"),
-         !samplenumber == "guardian50") %>%
   # mutate(sampleID = hashed_id(matchname.x, "glass1234")#,
   #        #first_surf = fct_drop(first_surf, ">2")
   #        ) %>%
@@ -93,8 +83,31 @@ MatchedData <-
          -samplename,
          -samplenumber,
          -dS15,
-         -dL85) #%>%
-  # select(sampleID, everything())
+         -dL85) %>%
+  mutate(contrast_threshold = as_factor(
+    case_when(visual_contrast <= 1 ~ "<1_JND",
+              visual_contrast > 1 & visual_contrast < 3 ~ "1-3_JND",
+              visual_contrast >= 3 ~ ">3_JND"))) %>%
+  separate(matchname.x,
+           into = c("manufacturer", "sampleID")) %>%
+  filter(!total == 0) %>%
+  # Remove outliers, likely bad reflectance measurement because of wrong white standard or small sample area (too small for spectrometer probe)
+  filter(!(first_surf == 2 & visual_contrast > 5)#,
+         #!(first_surf ==">2")
+  ) %>%
+  filter(!(manufacturer == "pilkington" & sampleID == "nsg4"),
+         !(manufacturer == "guardian" & sampleID == "gdots"),
+         !(manufacturer == "guardian" & sampleID == "guardian"),
+         !(manufacturer == "guardian" & sampleID == "gdots40"),
+         !sampleID == "guardian50",
+         !(matchname.y == "arnold_56" & test == 30)) %>%
+  # Use same JND vals for same sample (differences in size/shape/pattern, not color)
+  mutate(dS = ifelse(manufacturer == "stlouiszoo", 1.67807688, dS),
+         dL = ifelse(manufacturer == "stlouiszoo", 20.06175, dL),
+         dS = ifelse(manufacturer == "walker" & sampleID == "1211", 0.71186309, dS),
+         dL = ifelse(manufacturer == "walker" & sampleID == "1211", 8.5281456, dL),
+         dS = ifelse(matchname.y == "mcgrory_mgbp008", 0.95911613, dS),
+         dL = ifelse(matchname.y == "mcgrory_mgbp008", 1.9710791, dL))
 
 # Save matched data -------------------------------------------------------
 
