@@ -73,8 +73,40 @@ AllSpecs <-
   AvgSpecs %>%
   reduce(left_join, "wl")
 
+# Additional specs (collected 6/2021)
+AddtlSpecs <-
+  getspec("Data/Raw-Data/Tunnel-Trial-Data/Reflectance/temp_specs/",
+          ext = "jaz",
+          subdir = TRUE) %>%
+  procspec(fixneg = "zero",
+           opt = "smooth") %>%
+  mutate(., across(everything(), ~ifelse(.x > 100, NA, .x))) %>%
+  select_if(., ~!any(is.na(.x))) %>%
+  mutate(wl = 300:700) %>%
+  select(wl, everything())
+
+# Sample names
+AddtlSpecsNames <-
+  colnames(AddtlSpecs) %>%
+  .[2:length(.)] %>%
+  str_remove(., "_[1-3]") %>%
+  str_remove(., "_[1-3]")
+
+# Sample averages
+ AddtlSpecsAvg <-
+  AddtlSpecs %>%
+  aggspec(.,
+          by = AddtlSpecsNames)
+
+ # Combine with AllSpecs
+
+ FullSpecs <-
+   AllSpecs %>%
+   select(!contains("eastman_333bh")) %>%
+   left_join(., AddtlSpecsAvg,
+             by = "wl")
 
 # Save specs as RDS -------------------------------------------------------
 
-write_rds(AllSpecs,
+write_rds(FullSpecs,
           file = "Data/glass-reflectance-spectra.rds")
