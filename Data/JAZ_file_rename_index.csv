@@ -1,0 +1,4 @@
+CardID,Folder,Spec,Manufacturer,Sample_Name,Pattern,Standard,Replicate,Extension
+temp_files,spec0_0001,SPECTRUM0000,Arnold,ornilux,on,mirror,1,jaz
+temp_files,spec0_0001,SPECTRUM0001,Guardian,glass,off,white,2,jaz
+,,,,,,trans,,
