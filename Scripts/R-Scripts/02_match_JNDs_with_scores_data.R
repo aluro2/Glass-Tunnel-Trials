@@ -99,3 +99,5 @@ MatchedData <-
 # Save matched data -------------------------------------------------------
 
 write_rds(MatchedData, "Data/MatchedData.rds")
+
+print("DONE")

@@ -39,10 +39,12 @@ write_rds(model, "Results/full-model.rds")
 
 model_vis_contrast <-
   brm(
-    bf(cont | trials(total) ~ 0.5 + 0.5 * inv_logit(eta), eta ~ visual_contrast, nl = TRUE),
+    bf(cont | trials(total) ~ visual_contrast + (1|season_yr_cond)),
     data = MatchedData,
-    family = binomial(link = "identity"),
-    prior = prior(normal(0, 1), nlpar = "eta"),
+    family = binomial(link = "logit"),
+    prior = c(prior(normal(0, 0.25), class = Intercept, coef = ""),
+              prior(cauchy(0, 10), class = sd),
+              prior(normal(0, 3), class = b)),
     iter = 2000,
     inits = "random",
     chains = 4,

@@ -89,8 +89,7 @@ AddtlSpecs <-
 AddtlSpecsNames <-
   colnames(AddtlSpecs) %>%
   .[2:length(.)] %>%
-  str_remove(., "_[1-3]") %>%
-  str_remove(., "_[1-3]")
+  sub("_[^_]+$", "", .)
 
 # Sample averages
  AddtlSpecsAvg <-
@@ -102,9 +101,12 @@ AddtlSpecsNames <-
 
  FullSpecs <-
    AllSpecs %>%
-   select(!contains("eastman_333bh")) %>%
+   select(-contains("eastman_3333bh"),
+          -contains("3333")) %>%
    left_join(., AddtlSpecsAvg,
-             by = "wl")
+             by = "wl") %>%
+   select(-contains("_na_"),
+          -ends_with("_trans"))
 
 # Save specs as RDS -------------------------------------------------------
 

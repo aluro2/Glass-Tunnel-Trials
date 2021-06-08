@@ -13,6 +13,7 @@ GlassSpecs <-
   names(GlassSpecs)<- gsub("walker_1_211", "walker_1211", names(GlassSpecs))
   names(GlassSpecs)<- gsub("walker_2_211", "walker_2211", names(GlassSpecs))
   names(GlassSpecs)<- gsub("eastman_number_0033_bh", "eastman_0033bh", names(GlassSpecs))
+  names(GlassSpecs)<- gsub("eastman333bh", "eastman_0333bh", names(GlassSpecs))
     }
 
 SampleID <-

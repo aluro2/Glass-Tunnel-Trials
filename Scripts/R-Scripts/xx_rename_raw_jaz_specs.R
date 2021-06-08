@@ -8,8 +8,6 @@ names.dat<-
 
 temp_dir <- tempdir()
 
-head(names.dat)
-
 rename.index <-
   names.dat %>%
   na.omit(.) %>%
