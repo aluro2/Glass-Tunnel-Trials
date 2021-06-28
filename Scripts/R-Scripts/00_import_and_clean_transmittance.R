@@ -13,8 +13,8 @@ SpecPaths <-
   list.files("Data/Raw-Data/Tunnel-Trial-Data/Transmittance",
              pattern = ".xls",
              full.names = TRUE) %>%
-  .[-4]
   # Drop file with unnamed sample (all spectra named "SPECTRUM...")
+  .[-grep("3-12-19|3-19-19|3-21-19|3-22-19", .)]
 
 # Import excel files
 
@@ -22,9 +22,11 @@ SpecPaths <-
 future::plan("multicore")
 
 Specs <-
-  SpecPaths[1:3] %>%
+  SpecPaths %>%
   # Import spreadsheets
-  furrr::future_map(., ~readxl::read_xlsx(.x, sheet = 1)) %>%
+  furrr::future_map(., ~readxl::read_xlsx(.x, sheet = 1) %>% select(-contains("SPECTRUM"))) %>%
+  # Remove empty columns
+  furrr::future_map(., ~janitor::remove_empty(.x, "cols")) %>%
   # Clean names to SCREAMING_SNAKE
   furrr::future_map(., ~janitor::clean_names(.x,case = "snake")) %>%
   # Get rid of generic unnamed specs, light and dark measurements
@@ -71,11 +73,12 @@ SampleNames <-
 
 AllSpecs <-
   AvgSpecs %>%
+  map(., ~rename_with(.x, ~paste(.x, "_trans", sep = ""), -contains("wl"))) %>%
   reduce(left_join, "wl")
 
 # Additional specs (collected 6/2021)
 AddtlSpecs <-
-  getspec("Data/Raw-Data/Tunnel-Trial-Data/Reflectance/temp_specs/",
+  getspec("Data/Raw-Data/Tunnel-Trial-Data/Transmittance/additional-spectra-06-2021/",
           ext = "jaz",
           subdir = TRUE) %>%
   procspec(fixneg = "zero",
@@ -105,10 +108,9 @@ FullSpecs <-
          -contains("3333")) %>%
   left_join(., AddtlSpecsAvg,
             by = "wl") %>%
-  select(-contains("_na_"),
-         -ends_with("_trans"))
+  select(-contains("_na_"))
 
 # Save specs as RDS -------------------------------------------------------
 
 write_rds(FullSpecs,
-          file = "Data/glass-reflectance-spectra.rds")
+          file = "Data/glass-transmission-spectra.rds")

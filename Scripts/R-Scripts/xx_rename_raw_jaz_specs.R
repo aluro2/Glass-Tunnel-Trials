@@ -26,7 +26,21 @@ file.copy(from = "Data/temp_specs/",
 file.rename(from = rename.index$old_names,
             to = rename.index$new_names)
 
-# Save named files to repo data dir
-file.copy(from = paste(temp_dir, "temp_specs", sep = "/"),
-          to = "Data/Raw-Data/Tunnel-Trial-Data/Reflectance/",
-          recursive = TRUE)
+# Get files subset by refl/trans
+reflectanceData <-
+  paste(temp_dir, "temp_specs", sep = "/") %>%
+    list.files(full.names = T, recursive = T) %>%
+    .[-grep("trans", .)]
+
+transmissionData <-
+  paste(temp_dir, "temp_specs", sep = "/") %>%
+  list.files(full.names = T, recursive = T) %>%
+  .[grep("trans", .)]
+
+# Save files to respective dirs
+
+file.copy(from = reflectanceData,
+          to = "Data/Raw-Data/Tunnel-Trial-Data/Reflectance/additional-spectra-06-2021/")
+
+file.copy(from = transmissionData,
+          to = "Data/Raw-Data/Tunnel-Trial-Data/Transmittance/additional-spectra-06-2021/")

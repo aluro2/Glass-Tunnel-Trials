@@ -8,7 +8,7 @@ library(furrr)
 
 # Import reflectance spectra files ----------------------------------------
 
-# Paths to spec files
+# Reflectance
 SpecPaths <-
   list.files("Data/Raw-Data/Tunnel-Trial-Data/Reflectance",
              pattern = ".xls",
@@ -16,7 +16,7 @@ SpecPaths <-
   # Drop file with unnamed sample (all spectra named "SPECTRUM...")
   .[-2]
 
-# Import excel files
+# Import excel files -----------------------------------
 
 # Run functions on list items in parallel using multiple CPU cores
 future::plan("multicore")
@@ -24,7 +24,9 @@ future::plan("multicore")
 Specs <-
   SpecPaths %>%
   # Import spreadsheets
-  furrr::future_map(., ~readxl::read_xlsx(.x, sheet = 1)) %>%
+  furrr::future_map(., ~readxl::read_xlsx(.x, sheet = 1) %>% select(-contains("SPECTRUM"))) %>%
+  # Remove empty columns
+  furrr::future_map(., ~janitor::remove_empty(.x, "cols")) %>%
   # Clean names to SCREAMING_SNAKE
   furrr::future_map(., ~janitor::clean_names(.x,case = "snake")) %>%
   # Get rid of generic unnamed specs, light and dark measurements
@@ -75,7 +77,7 @@ AllSpecs <-
 
 # Additional specs (collected 6/2021)
 AddtlSpecs <-
-  getspec("Data/Raw-Data/Tunnel-Trial-Data/Reflectance/temp_specs/",
+  getspec("Data/Raw-Data/Tunnel-Trial-Data/Reflectance/additional-spectra-06-2021",
           ext = "jaz",
           subdir = TRUE) %>%
   procspec(fixneg = "zero",

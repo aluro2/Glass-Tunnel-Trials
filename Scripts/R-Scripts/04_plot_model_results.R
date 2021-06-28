@@ -21,9 +21,9 @@ plot_data <-
   data_grid(visual_contrast = seq(0, 13, 0.2),
             total = 65,
             pat_width = seq_range(pat_width, n = 20),
-            first_surf = c("1", ">1"),
-            season_yr_cond) %>%
-  group_by(first_surf, visual_contrast) %>%
+            manufacturer,
+            first_surf = c("1", ">1")) %>%
+  #group_by(manufacturer, visual_contrast) %>%
   add_predicted_draws(model, n = 20, scale = "response", allow_new_levels = T) %>%
   mutate(avoid_prob = .prediction/total) %>%
   mutate(median_value = median(avoid_prob))
@@ -127,12 +127,15 @@ ggplot() +
 
 # Test --------------------------------------------------------------------
 
+model_vis_contrast <-
+  read_rds("Results/model-vis-contrast.rds")
+
 plot_data <-
   model_vis_contrast$data %>%
-  data_grid(visual_contrast = seq(0, 13, 0.2),
+  data_grid(visual_contrast = seq(0, 13, 0.05),
             total = 65) %>%
   group_by(visual_contrast) %>%
-  add_predicted_draws(model_vis_contrast, n = 20, scale = "response", allow_new_levels = T) %>%
+  add_predicted_draws(model_vis_contrast, n = 1000, scale = "response", allow_new_levels = T) %>%
   mutate(avoid_prob = .prediction/total) %>%
   mutate(median_value = median(avoid_prob))
 
@@ -178,7 +181,7 @@ scale_colour_ggthemr_d() +
   annotate("text",
            x = 5,
            y = 1,
-           label = "The probability of flight avoidance increases by 7% \n for every 1 unit increase in visual contrast of the pattern against the glass sample.") +
+           label = "The probability of flight avoidance increases by 4% \n for every 1 unit increase in visual contrast of the pattern against the glass sample.") +
   theme(
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
@@ -187,9 +190,11 @@ scale_colour_ggthemr_d() +
     panel.grid.minor = element_blank()
   )
 
-# ggsave("Figures/01_contrast_and_patwidth_dropped_outliers.pdf",
-#        plot_contrast_and_patwidth,
-#        width = 16,
-#        height = 8,
-#        units = "in",
-#        dpi = 400)
+plot_contrast
+
+ggsave("Figures/01_fitted_flight_avoid_vs_visual_contrast.svg",
+       plot_contrast,
+       width = 16,
+       height = 8,
+       units = "in",
+       dpi = 400)

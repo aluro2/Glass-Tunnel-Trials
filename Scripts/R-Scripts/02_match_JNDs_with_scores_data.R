@@ -62,18 +62,19 @@ MatchedData <-
          cont,
          total,
          test,
-         dS,
-         dL,
+         dS_refl,
+         dL_refl,
          insulated,
          pat_width,
          first_surf,
          everything()) %>%
   # Get weighted values-- achro dL = 85%, chromatic dS = 15%
   mutate(
-    dS15 = dS*0.15,
-    dL85 = dL*0.85,
+    dS15 = dS_refl*0.15,
+    dL85 = dL_refl*0.85,
     # Composite visual contrast
-    visual_contrast = ((dS15 + dL85)/ 2)
+    visual_contrast = ((dS15 + dL85)/ 2),
+    first_surf = as.factor(first_surf)
   ) %>%
   # mutate(sampleID = hashed_id(matchname.x, "glass1234")#,
   #        #first_surf = fct_drop(first_surf, ">2")
@@ -102,12 +103,12 @@ MatchedData <-
          !sampleID == "guardian50",
          !(matchname.y == "arnold_56" & test == 30)) %>%
   # Use same JND vals for same sample (differences in size/shape/pattern, not color)
-  mutate(dS = ifelse(manufacturer == "stlouiszoo", 1.67807688, dS),
-         dL = ifelse(manufacturer == "stlouiszoo", 20.06175, dL),
-         dS = ifelse(manufacturer == "walker" & sampleID == "1211", 0.71186309, dS),
-         dL = ifelse(manufacturer == "walker" & sampleID == "1211", 8.5281456, dL),
-         dS = ifelse(matchname.y == "mcgrory_mgbp008", 0.95911613, dS),
-         dL = ifelse(matchname.y == "mcgrory_mgbp008", 1.9710791, dL))
+  mutate(dS_refl = ifelse(manufacturer == "stlouiszoo", 1.67807688, dS_refl),
+         dL_refl = ifelse(manufacturer == "stlouiszoo", 20.06175, dL_refl),
+         dS_refl = ifelse(manufacturer == "walker" & sampleID == "1211", 0.71186309, dS_refl),
+         dL_refl = ifelse(manufacturer == "walker" & sampleID == "1211", 8.5281456, dL_refl),
+         dS_refl = ifelse(matchname.y == "mcgrory_mgbp008", 0.95911613, dS_refl),
+         dL_refl = ifelse(matchname.y == "mcgrory_mgbp008", 1.9710791, dL_refl))
 
 # Save matched data -------------------------------------------------------
 
