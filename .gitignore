@@ -4,7 +4,7 @@ Tunnel-Trial-Data/
 # Rstudio files
 *.Rproj
 .Rproj.user
-.Rproj.user/ 
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
@@ -26,3 +26,4 @@ Scripts/R-Scripts/xx_hashID.R
 Data/data-with-contrast.csv
 Data/Raw-Data/reflectance-spec-notes.txt
 temp_specs/*
+zz_*

@@ -17,7 +17,7 @@ run_brms <- function(model){
       data = MatchedData,
       family = binomial(link = "logit"),
       prior = c(prior(normal(0, 0.25), class = Intercept, coef = ""),
-                prior(cauchy(0, 10), class = sd),
+                #prior(cauchy(0, 10), class = sd),
                 prior(normal(0, 3), class = b)),
       iter = 5000,
       inits = "random",
@@ -27,7 +27,8 @@ run_brms <- function(model){
       seed = 15,
       control = list(adapt_delta = 0.95),
       sample_prior = "yes",
-      save_all_pars = TRUE
+      save_all_pars = TRUE,
+      backend = "cmdstan"
     )
 
   return(model)
@@ -42,17 +43,20 @@ write_rds(model_vis_contrast, "Results/model-vis-contrast.rds")
 
 model_pattern_width <-
   run_brms(
-    model = bf(cont | trials(total) ~ pat_width + (1|manufacturer))
+    model = bf(cont | trials(total) ~ pat_width/avehd + (1|manufacturer))
   )
 
-summmodel_first_surf <-
+model_first_surf <-
   run_brms(
     model = bf(cont | trials(total) ~ first_surf + (1|manufacturer))
   )
 
+
+# Full model --------------------------------------------------------------
+
 model_full <-
   run_brms(
-    model = bf(cont | trials(total) ~ visual_contrast + pat_width + first_surf + (1|manufacturer))
+    model = bf(cont | trials(total) ~ visual_contrast + avehd*avevd)
   )
 
 write_rds(model, "Results/full-model.rds")
@@ -67,6 +71,4 @@ prob2logit <-
   function(x){
     log(x/(1-x))
   }
-
-
 

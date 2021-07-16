@@ -73,7 +73,7 @@ MatchedData <-
     dS15 = dS_refl*0.15,
     dL85 = dL_refl*0.85,
     # Composite visual contrast
-    visual_contrast = ((dS15 + dL85)/ 2),
+    visual_contrast = (dS15 + dL85),
     first_surf = as.factor(first_surf)
   ) %>%
   # mutate(sampleID = hashed_id(matchname.x, "glass1234")#,

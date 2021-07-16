@@ -135,8 +135,8 @@ plot_data <-
   data_grid(visual_contrast = seq(0, 13, 0.05),
             total = 65) %>%
   group_by(visual_contrast) %>%
-  add_predicted_draws(model_vis_contrast, n = 1000, scale = "response", allow_new_levels = T) %>%
-  mutate(avoid_prob = .prediction/total) %>%
+  add_fitted_draws(model_vis_contrast, n = 1000, scale = "response", allow_new_levels = T) %>%
+  mutate(avoid_prob = .value/total) %>%
   mutate(median_value = median(avoid_prob))
 
 ggthemr::ggthemr_reset()
@@ -162,7 +162,7 @@ scale_colour_ggthemr_d() +
   guides(
     color = guide_legend(title = "Glass pattern \n surface number"),
     size = guide_legend(title = "Glass pattern width (cm)"),
-    fill = guide_legend(title = "Model prediction probability interval")
+    fill = guide_legend(title = "Model fit probability interval")
   ) +
   labs(
     x = "Avian visual contrast (JND)",
@@ -178,10 +178,11 @@ scale_colour_ggthemr_d() +
            label = expression(paste(italic("BirdVis "), "PASS/FAIL threshold")),
            color = "gray",
            alpha = 1) +
-  annotate("text",
-           x = 5,
-           y = 1,
-           label = "The probability of flight avoidance increases by 4% \n for every 1 unit increase in visual contrast of the pattern against the glass sample.") +
+  # annotate("text",
+  #          x = 5,
+  #          y = 1,
+  #          label = "The probability of flight avoidance increases by 4% \n for every 1 unit increase in visual contrast of the pattern against the glass sample.") +
+  geom_hline(yintercept = 0.7, linetype = "dotted", color = "black") +
   theme(
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
@@ -192,7 +193,7 @@ scale_colour_ggthemr_d() +
 
 plot_contrast
 
-ggsave("Figures/01_fitted_flight_avoid_vs_visual_contrast.svg",
+ggsave("Figures/01_fitted_flight_avoid_vs_visual_contrast.png",
        plot_contrast,
        width = 16,
        height = 8,
